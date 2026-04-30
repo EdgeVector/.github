@@ -1,0 +1,33 @@
+name: Auto-merge (reusable)
+
+# Reusable workflow that flips on `--auto` for the calling repo's PR so the
+# merge queue picks it up when CI passes. Each EdgeVector repo's local
+# .github/workflows/auto-merge.yml stub calls this with `secrets: inherit`
+# so the org-level GH_PAT carries through.
+#
+# Why GH_PAT and not GITHUB_TOKEN: the merge-queue ruleset's bypass list
+# includes the admin role (id=5) but not github-actions[bot]. Auto-merge
+# requests authored by the bot get silently refused — auto-merge appears
+# enabled but the PR never enters the queue. A PAT belonging to an admin
+# (in the bypass list) admits normally. Verified 2026-04-28 across 5+
+# sibling repos.
+#
+# No --squash flag: every consuming repo that can call this is expected
+# to have a merge_queue ruleset on main, which makes gh CLI defer method
+# choice to the queue (queue is configured `merge_method: SQUASH`).
+
+on:
+  workflow_call:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  enable-auto-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable auto-merge
+        run: gh pr merge ${{ github.event.pull_request.number }} --auto --repo ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
