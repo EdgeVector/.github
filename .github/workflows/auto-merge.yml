@@ -12,9 +12,14 @@ name: Auto-merge (reusable)
 # (in the bypass list) admits normally. Verified 2026-04-28 across 5+
 # sibling repos.
 #
-# No --squash flag: every consuming repo that can call this is expected
-# to have a merge_queue ruleset on main, which makes gh CLI defer method
-# choice to the queue (queue is configured `merge_method: SQUASH`).
+# `--squash` is required: gh CLI rejects `gh pr merge --auto` non-
+# interactively without an explicit method, even when the repo's
+# merge_queue ruleset specifies one. The earlier "no flag needed"
+# assumption only worked by accident — it noop'd on PRs that already
+# had auto-merge enabled (e.g. from a prior manual click). Fresh PRs
+# with no prior enable hit `--merge, --rebase, or --squash required`
+# and bounced out of the queue. Every consuming EdgeVector repo's
+# merge queue is configured `merge_method: SQUASH`, so this matches.
 
 on:
   workflow_call:
@@ -28,6 +33,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Enable auto-merge
-        run: gh pr merge ${{ github.event.pull_request.number }} --auto --repo ${{ github.repository }}
+        run: gh pr merge ${{ github.event.pull_request.number }} --auto --squash --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
