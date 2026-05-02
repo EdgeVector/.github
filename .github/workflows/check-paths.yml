@@ -88,8 +88,12 @@ jobs:
         uses: dorny/paths-filter@v3
         with:
           # Use OR semantics: each filter is `true` if ANY of its patterns
-          # match. The `docs_only` check below uses set arithmetic, not a
-          # path filter, so it isn't listed here.
+          # match. Every category includes `.github/workflows/**` so a
+          # workflow edit re-runs whichever gated job that workflow
+          # controls — without that, an edit to `ci.yml` could skip the
+          # very job being modified and merge with `ci-required: success`
+          # from a skipped check. The `docs_only` check below uses set
+          # arithmetic, not a path filter, so it isn't listed here.
           filters: |
             rust:
               - '**/*.rs'
@@ -107,10 +111,12 @@ jobs:
               - '**/pnpm-lock.yaml'
               - '**/yarn.lock'
               - '**/tsconfig*.json'
+              - '.github/workflows/**'
             cdk:
               - 'cdk/**'
               - 'infra/**'
               - '*.ts'
+              - '.github/workflows/**'
             docs:
               - '**/*.md'
               - '**/*.mdx'
