@@ -46,17 +46,3 @@ jobs:
   payload is a custom embed (not Discord's native `/github` integration
   format), so the secret must be the bare Discord webhook URL — not the
   `?wait=true` or `/github` suffix variants.
-
-### `manage-org-secret.yml`
-
-Manual `workflow_dispatch` for creating or rotating EdgeVector org-level
-Actions secrets. Runs inside `EdgeVector/.github`, where `GH_PAT` is
-available with the admin scope needed to write org secrets. Kept around
-for future rotations rather than deleted after first use.
-
-```bash
-gh workflow run manage-org-secret.yml \
-  --repo EdgeVector/.github \
-  -f secret_name=SOME_NAME \
-  -f secret_value='...'
-```
