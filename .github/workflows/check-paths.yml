@@ -80,7 +80,7 @@ jobs:
     steps:
       # paths-filter walks the diff via the GitHub API on PRs and via
       # `git diff` on push events; checkout is required for the latter.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
