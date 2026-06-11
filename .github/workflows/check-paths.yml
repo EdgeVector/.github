@@ -85,7 +85,7 @@ jobs:
           fetch-depth: 0
 
       - id: filter
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           # Use OR semantics: each filter is `true` if ANY of its patterns
           # match. Every category includes `.github/workflows/**` so a
