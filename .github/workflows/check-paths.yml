@@ -10,8 +10,8 @@ name: Check changed paths (reusable)
 # Path categories the consumer can read off `outputs.*`:
 #
 #   rust       any *.rs, Cargo.toml, Cargo.lock, rust-toolchain.toml,
-#              or any file under .github/workflows/ (a workflow edit
-#              should always re-run Rust)
+#              .cargo/**, .config/**, or any file under .github/workflows/
+#              (a workflow edit should always re-run Rust)
 #   frontend   anything under src/server/static-react/, app/, or web/
 #   cdk        anything under cdk/, infra/, or named *.ts at the repo root
 #   docs_only  ONLY *.md, *.mdx, LICENSE*, *.txt, .gitignore, .editorconfig,
@@ -100,6 +100,8 @@ jobs:
               - '**/Cargo.toml'
               - '**/Cargo.lock'
               - '**/rust-toolchain.toml'
+              - '.cargo/**'
+              - '.config/**'
               - '.github/workflows/**'
               - 'scripts/**'
             frontend:
