@@ -7,14 +7,12 @@ reusable GitHub Actions workflows.
 
 `EdgeVector/.github` is intentionally GitHub-primary. It is an exception to the
 public LastGit dual-home pattern because its reusable workflows are consumed by
-other repositories with `uses: EdgeVector/.github/.github/workflows/...@main`,
-and because the org-level `GH_PAT` health probe must run as a scheduled GitHub
-Actions workflow.
+other repositories with `uses: EdgeVector/.github/.github/workflows/...@main`.
 
 Do not convert this repository into a read-only GitHub mirror unless every
-consumer has moved off the GitHub `uses:` path and the scheduled org probe has a
-replacement venue. The normal public-repo LastGit pattern still applies to repos
-whose GitHub copy is only for cloning and browsing.
+consumer has moved off the GitHub `uses:` path. The normal public-repo LastGit
+pattern still applies to repos whose GitHub copy is only for cloning and
+browsing.
 
 ## Reusable workflows
 
