@@ -8,6 +8,7 @@ Org-wide defaults for `EdgeVector/*` repos (shared community files).
 It is **not** a CI venue. Product repos use LastGit (`lastdb:///<slug>`) or
 Forgejo; their GitHub copies are read-only mirrors with Actions disabled.
 The public LastDB URL is https://thelastdb.com.
+First-run LastDB install instructions are at https://thelastdb.com/llms.txt.
 
 ## GitHub Actions
 
