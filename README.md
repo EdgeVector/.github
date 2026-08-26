@@ -18,3 +18,5 @@ removed when EdgeVector stopped using GitHub Actions for product work.
 
 Do not re-add push/PR/scheduled workflows here unless Tom explicitly asks to
 turn GitHub Actions back on.
+
+Factory: ship-feature-v4-gate live since 2026-08-26 (design gate + review loop)
