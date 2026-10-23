@@ -3,12 +3,14 @@
 Raw operational output stays outside Git. This rule applies to every EdgeVector repo.
 It includes logs, samples, request/reply dumps, generated receipts, and compressed copies.
 
-Commit a short Markdown report and useful source scripts. The report states the result,
-method, source revisions, commands, and limits. Link the raw output when review needs it.
-Keep CI output as a workflow artifact. Use a durable archive for long retention.
-Record an expiration date when the download expires. Verify the upload before local cleanup.
+Use the CI summary and workflow artifacts as the validation record. Link the run in the PR.
+Routine CI needs no separate committed report or `artifact.json`. This rule replaces older
+instructions to commit proof files. Keep useful source scripts and durable design conclusions
+in Git. A deliberate report can state the result, method, revisions, commands, and limits.
+CI records the download URL, checksum, source revision, and expiration beside the result.
+Use a durable archive for selected results that need long retention. Verify retained output before cleanup.
 
-Each PR permits at most 10 changed evidence files and 100,000 total evidence bytes.
+Optional evidence files have a limit of 10 changed files and 100,000 total bytes per PR.
 The check counts each changed file's complete size. It checks the committed Git files,
 so ignore rules and force-add cannot override it. Unchanged historical files and deletions
 do not count. Product JSON configuration and source scripts stay outside this budget.
@@ -16,8 +18,10 @@ do not count. Product JSON configuration and source scripts stay outside this bu
 Evidence directories include `proofs`, `evidence`, `receipts`, `captures`, `measurements`,
 `benchmark-results`, `bench-results`, and `raw-http`. Benchmark result/output directories
 also count. Raw log suffixes and named sample/dump files are blocked outside those directories.
-Evidence directories permit Markdown and source scripts. They also permit one compact
-`artifact.json` per directory. It must use these string fields:
+Evidence directories permit Markdown and source scripts. They also permit one optional compact
+`artifact.json` per directory. No report or receipt is required for a PR to pass this check.
+The check inspects committed files; it does not certify a CI run or benchmark result.
+When a receipt is necessary for a durable archive, it uses these string fields:
 
 ```json
 {

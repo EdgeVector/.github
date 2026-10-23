@@ -158,8 +158,8 @@ def check(base, head):
     print("Generated evidence: {} changed files checked; {} evidence files / {} bytes; {} problem(s).".format(
         len(paths), evidence_files, evidence_bytes, len(problems)))
     if problems:
-        print("Keep a short Markdown report, useful source scripts, and optional artifact.json. "
-              "Upload raw output outside Git; compression and force-add do not exempt it.")
+        print("Link the CI summary and artifacts in the PR; no separate report or receipt is required. "
+              "Keep raw output outside Git; compression and force-add do not exempt it.")
     return bool(problems)
 
 
