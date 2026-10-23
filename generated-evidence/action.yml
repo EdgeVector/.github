@@ -1,0 +1,19 @@
+name: Generated evidence policy
+description: Keep raw operational output out of pull requests.
+inputs:
+  base:
+    description: Base commit for the pull request or merge group.
+    required: true
+  head:
+    description: Candidate commit.
+    required: true
+    default: HEAD
+runs:
+  using: composite
+  steps:
+    - name: Check committed evidence
+      shell: bash
+      env:
+        EVIDENCE_BASE: ${{ inputs.base }}
+        EVIDENCE_HEAD: ${{ inputs.head }}
+      run: python3 "$GITHUB_ACTION_PATH/check.py" --base "$EVIDENCE_BASE" --head "$EVIDENCE_HEAD"
