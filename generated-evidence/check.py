@@ -17,8 +17,9 @@ EVIDENCE_DIRS = {
     "proof", "proofs", "evidence", "receipts", "captures", "measurements",
     "benchmark-results", "bench-results", "benchmark-output", "bench-output",
     "perf-results", "performance-results", "raw-http", "raw-output",
+    ".benchmark-output", ".evidence",
 }
-RAW_DIRS = {"benchmark-output", "bench-output", "raw-http", "raw-output", ".evidence"}
+RAW_DIRS = {"benchmark-output", "bench-output", "raw-http", "raw-output", ".evidence", ".benchmark-output"}
 SOURCE_SUFFIXES = {".py", ".sh", ".rs", ".js", ".mjs", ".cjs", ".ts", ".go"}
 COMPRESSED_SUFFIXES = {".gz", ".zip", ".xz", ".bz2", ".zst", ".tar", ".7z"}
 RAW_SUFFIXES = {".log", ".stdout", ".stderr", ".jsonl", ".ndjson", ".time"}
@@ -119,7 +120,7 @@ def check_receipt(spec, size):
         return "artifact.json needs a downloadable HTTPS URL"
     if not re.fullmatch(r"[0-9a-fA-F]{64}", receipt["sha256"]):
         return "artifact.json needs the archive SHA-256"
-    if not re.fullmatch(r"[0-9a-fA-F]{40,64}", receipt["source_revision"]):
+    if not re.fullmatch(r"(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})", receipt["source_revision"]):
         return "artifact.json needs the full source revision"
     return None
 
