@@ -1,0 +1,15 @@
+name: No build artifacts
+description: Block build/cache directories and oversized blobs from entering git history.
+inputs:
+  tree:
+    description: Git tree revision to inspect.
+    required: false
+    default: HEAD
+runs:
+  using: composite
+  steps:
+    - name: Check tree for build artifacts and oversized blobs
+      shell: bash
+      env:
+        CHECK_TREE: ${{ inputs.tree }}
+      run: bash "$GITHUB_ACTION_PATH/check.sh" --tree "$CHECK_TREE"

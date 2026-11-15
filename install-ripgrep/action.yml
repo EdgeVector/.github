@@ -1,0 +1,8 @@
+name: Install pinned ripgrep
+description: Install pinned ripgrep 14.1.0 with SHA-256 verification when rg is absent.
+runs:
+  using: composite
+  steps:
+    - name: Install ripgrep
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/install.sh"

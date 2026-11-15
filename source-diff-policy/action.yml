@@ -1,0 +1,62 @@
+name: Source diff policy
+description: Enforce file-size, touched Rust function-size, and clippy allow ratchets on pull request diffs.
+inputs:
+  base:
+    description: Base commit for the pull request or merge group. Empty skips diff-only checks.
+    required: false
+    default: ""
+  head:
+    description: Candidate commit.
+    required: false
+    default: HEAD
+  extensions:
+    description: Comma-separated source extensions checked by diff_file_size.py.
+    required: false
+    default: ".rs"
+  max_file_lines:
+    description: Maximum line count for newly added or newly crossed source files.
+    required: false
+    default: "400"
+  max_fn_lines:
+    description: Maximum line count for newly added or newly crossed Rust functions.
+    required: false
+    default: "100"
+  allow_growth:
+    description: Maximum net line growth allowed on an already-over-limit file or function.
+    required: false
+    default: "10"
+runs:
+  using: composite
+  steps:
+    - name: Enforce source diff size and allow limits
+      shell: bash
+      env:
+        DIFF_BASE: ${{ inputs.base }}
+        DIFF_HEAD: ${{ inputs.head }}
+        DIFF_EXTENSIONS: ${{ inputs.extensions }}
+        MAX_FILE_LINES: ${{ inputs.max_file_lines }}
+        MAX_FN_LINES: ${{ inputs.max_fn_lines }}
+        ALLOW_GROWTH: ${{ inputs.allow_growth }}
+      run: |
+        set -euo pipefail
+        if [ -z "$DIFF_BASE" ] || [[ "$DIFF_BASE" =~ ^0+$ ]]; then
+          echo "source-diff-policy: no PR/merge_group base revision; skipping diff-only checks."
+          exit 0
+        fi
+        python3 -m pip install --quiet tree-sitter==0.23.2 tree-sitter-rust==0.23.2
+        ext_args=()
+        IFS=',' read -r -a exts <<<"$DIFF_EXTENSIONS"
+        for ext in "${exts[@]}"; do
+          trimmed="${ext#"${ext%%[![:space:]]*}"}"
+          trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
+          [ -n "$trimmed" ] && ext_args+=(--ext "$trimmed")
+        done
+        python3 "$GITHUB_ACTION_PATH/diff_fn_size.py" \
+          --base "$DIFF_BASE" --head "$DIFF_HEAD" \
+          --max "$MAX_FN_LINES" --allow "$ALLOW_GROWTH"
+        python3 "$GITHUB_ACTION_PATH/diff_file_size.py" \
+          --base "$DIFF_BASE" --head "$DIFF_HEAD" \
+          --max "$MAX_FILE_LINES" --allow "$ALLOW_GROWTH" \
+          "${ext_args[@]}"
+        python3 "$GITHUB_ACTION_PATH/diff_new_allows.py" \
+          --base "$DIFF_BASE" --head "$DIFF_HEAD"
