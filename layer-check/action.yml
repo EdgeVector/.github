@@ -1,0 +1,38 @@
+name: Rust module layer check
+description: Fail when crate-internal Rust module references point upward across declared layers.toml order.
+inputs:
+  crates:
+    description: Whitespace-separated crate directories containing layers.toml.
+    required: true
+  layers_file:
+    description: Layer manifest filename inside each crate directory.
+    required: false
+    default: layers.toml
+  summary:
+    description: Print layer line and file summary tables ("true" or "false").
+    required: false
+    default: "false"
+runs:
+  using: composite
+  steps:
+    - name: Verify crate module layer dependencies
+      shell: bash
+      env:
+        LAYER_CRATES: ${{ inputs.crates }}
+        LAYERS_FILE: ${{ inputs.layers_file }}
+        LAYER_SUMMARY: ${{ inputs.summary }}
+      run: |
+        set -euo pipefail
+        crate_args=()
+        for crate_dir in $LAYER_CRATES; do
+          crate_args+=(--crate "$crate_dir")
+        done
+        if [ "${#crate_args[@]}" -eq 0 ]; then
+          echo "layer-check: inputs.crates must name at least one crate directory" >&2
+          exit 2
+        fi
+        extra_args=(--layers "$LAYERS_FILE")
+        if [ "$LAYER_SUMMARY" = "true" ]; then
+          extra_args+=(--summary)
+        fi
+        python3 "$GITHUB_ACTION_PATH/check.py" "${crate_args[@]}" "${extra_args[@]}"
