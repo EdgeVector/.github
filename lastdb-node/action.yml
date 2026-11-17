@@ -4,12 +4,15 @@ inputs:
   github-token:
     description: Token that reads EdgeVector/lastdb releases.
     default: ${{ github.token }}
+  start:
+    description: "true starts the node. false only downloads and verifies the programs, for a job that starts its own nodes."
+    default: "true"
   start-seconds:
     description: Seconds to wait for the node to report health.
     default: "120"
 outputs:
   socket:
-    description: Owner socket of the node. Also exported as LASTDB_SOCKET_PATH.
+    description: Owner socket of the node. Also exported as LASTDB_SOCKET_PATH. Empty when start is false.
     value: ${{ steps.start.outputs.socket }}
   home:
     description: The node's fresh home directory.
@@ -23,6 +26,21 @@ outputs:
   bin:
     description: Directory that holds the verified lastdbd and lastdb programs.
     value: ${{ steps.start.outputs.bin }}
+  lastdbd:
+    description: Path of the verified lastdbd program.
+    value: ${{ steps.start.outputs.lastdbd }}
+  lastdb:
+    description: Path of the verified lastdb program.
+    value: ${{ steps.start.outputs.lastdb }}
+  version:
+    description: Version string in the nightly manifest.
+    value: ${{ steps.start.outputs.version }}
+  sha256:
+    description: SHA-256 of the nightly Linux tarball.
+    value: ${{ steps.start.outputs.sha256 }}
+  lastdbd-sha256:
+    description: SHA-256 of the lastdbd program.
+    value: ${{ steps.start.outputs.lastdbd-sha256 }}
   tag:
     description: The nightly release tag.
     value: ${{ steps.start.outputs.tag }}
@@ -35,10 +53,11 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Start the latest LastDB nightly on a fresh home
+    - name: Fetch the latest LastDB nightly and start it on a fresh home
       id: start
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github-token }}
+        START: ${{ inputs.start }}
         START_SECONDS: ${{ inputs.start-seconds }}
       run: bash "$GITHUB_ACTION_PATH/start.sh"

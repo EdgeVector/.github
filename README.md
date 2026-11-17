@@ -27,6 +27,8 @@ steps:
   - run: python3 scripts/ci-lastdb-node.py   # the app's own script
 ```
 
+A job that starts its own nodes passes `start: "false"`. The action then only downloads and verifies, and the job reads the `lastdbd`, `lastdb`, `tag`, `revision`, `version` and `sha256` outputs.
+
 The node holds generated data only and ends with the job. The home allows `POST /api/schemas/seed-system` with `isolated_copy: true`, so a job can declare its own schemas.
 
 Factory: ship-feature-v4-gate live since 2026-08-26 (design gate + review loop)
