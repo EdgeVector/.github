@@ -10,13 +10,16 @@ if [ "$(uname -s)-$(uname -m)" != "Linux-x86_64" ]; then
   echo "lastdb-node: the nightly is fetched for Linux x86_64 only" >&2
   exit 1
 fi
+case "$START" in
+  true | false) ;;
+  *) echo "lastdb-node: start must be true or false" >&2; exit 1 ;;
+esac
 case "$START_SECONDS" in
   '' | *[!0-9]*) echo "lastdb-node: start-seconds must be a whole number" >&2; exit 1 ;;
 esac
 
 root="$RUNNER_TEMP/lastdb-node"
 mkdir "$root" "$root/bin"
-mkdir -m 700 "$root/home"
 
 tag="$(gh release list -R EdgeVector/lastdb --exclude-drafts --limit 30 \
   --json tagName,publishedAt \
@@ -30,13 +33,33 @@ gh release download "$tag" -R EdgeVector/lastdb -D "$root/bin" \
 (cd "$root/bin" && grep " $asset.tar.gz\$" SHA256SUMS.txt | sha256sum --check --status)
 tar -xzf "$root/bin/$asset.tar.gz" -C "$root/bin"
 manifest="$root/bin/$asset.manifest.json"
-want="$(jq -r '.binaries[] | select(.name == "lastdbd") | .sha256' "$manifest")"
-have="$(sha256sum "$root/bin/lastdbd" | cut -d' ' -f1)"
-if [ -z "$want" ] || [ "$want" != "$have" ]; then
-  echo "lastdb-node: lastdbd does not match the nightly manifest" >&2
+for name in lastdb lastdbd; do
+  want="$(jq -er --arg name "$name" '.binaries[] | select(.name == $name) | .sha256' "$manifest")"
+  have="$(sha256sum "$root/bin/$name" | cut -d' ' -f1)"
+  if [ "$want" != "$have" ]; then
+    echo "lastdb-node: $name does not match the nightly manifest" >&2
+    exit 1
+  fi
+done
+revision="$(jq -er .source_git_oid "$manifest")"
+version="$(jq -er .version "$manifest")"
+archive_sum="$(sha256sum "$root/bin/$asset.tar.gz" | cut -d' ' -f1)"
+# A nightly tag ends in the first nine characters of its source commit.
+if [ "${tag##*-}" != "${revision:0:9}" ]; then
+  echo "lastdb-node: the manifest names another source commit than the tag" >&2
   exit 1
 fi
-revision="$(jq -r .source_git_oid "$manifest")"
+{
+  printf 'bin=%s\nlastdbd=%s\nlastdb=%s\n' "$root/bin" "$root/bin/lastdbd" "$root/bin/lastdb"
+  printf 'tag=%s\nrevision=%s\nversion=%s\nsha256=%s\nlastdbd-sha256=%s\n' \
+    "$tag" "$revision" "$version" "$archive_sum" "$have"
+} >> "$GITHUB_OUTPUT"
+if [ "$START" = false ]; then
+  printf 'LastDB nightly: %s at %s, Linux tarball SHA-256 %s, lastdbd SHA-256 %s\n' \
+    "$tag" "$revision" "$archive_sum" "$have" | tee -a "$GITHUB_STEP_SUMMARY"
+  exit 0
+fi
+mkdir -m 700 "$root/home"
 
 socket="$root/q.sock"
 log="$root/node.log"
@@ -77,10 +100,8 @@ if [ -f "$root/home/data/laststore-pack-node-v1" ]; then
   format="$(tr -d '\n' < "$root/home/data/laststore-pack-node-v1" | cut -c1-80)"
 fi
 
-{
-  printf 'socket=%s\nhome=%s\nlog=%s\npid=%s\nbin=%s\n' "$socket" "$root/home" "$log" "$pid" "$root/bin"
-  printf 'tag=%s\nrevision=%s\napi-version=%s\n' "$tag" "$revision" "$api"
-} >> "$GITHUB_OUTPUT"
+printf 'socket=%s\nhome=%s\nlog=%s\npid=%s\napi-version=%s\n' \
+  "$socket" "$root/home" "$log" "$pid" "$api" >> "$GITHUB_OUTPUT"
 printf 'LASTDB_SOCKET_PATH=%s\n' "$socket" >> "$GITHUB_ENV"
-printf 'LastDB node: %s at %s, lastdbd SHA-256 %s, build %s, API %s, home marker %s\n' \
-  "$tag" "$revision" "$have" "$build" "$api" "$format" | tee -a "$GITHUB_STEP_SUMMARY"
+printf 'LastDB node: %s at %s, Linux tarball SHA-256 %s, lastdbd SHA-256 %s, build %s, API %s, home marker %s\n' \
+  "$tag" "$revision" "$archive_sum" "$have" "$build" "$api" "$format" | tee -a "$GITHUB_STEP_SUMMARY"
