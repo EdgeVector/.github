@@ -16,4 +16,17 @@ Callers pin these composite actions by full 40-character commit SHA so repositor
 - `EdgeVector/.github/layer-check@<sha>` — enforce intra-crate Rust module layer order declared in `<crate>/layers.toml`.
 - `EdgeVector/.github/install-ripgrep@<sha>` — install SHA-256-verified `ripgrep` 14.1.0 onto `$GITHUB_PATH` when absent.
 
+## Shared app CI on a real LastDB node
+
+- `EdgeVector/.github/lastdb-node@<sha>` — download the newest `EdgeVector/lastdb` nightly, verify its checksums, and start it on a fresh empty home. An app's job then runs its real commands against the socket in `LASTDB_SOCKET_PATH` (also the `socket` output). The job summary records the nightly tag, source commit, checksum, API version and home marker. Linux x86_64 runners only.
+
+```yaml
+steps:
+  - uses: actions/checkout@<sha>
+  - uses: EdgeVector/.github/lastdb-node@<sha>
+  - run: python3 scripts/ci-lastdb-node.py   # the app's own script
+```
+
+The node holds generated data only and ends with the job. The home allows `POST /api/schemas/seed-system` with `isolated_copy: true`, so a job can declare its own schemas.
+
 Factory: ship-feature-v4-gate live since 2026-08-26 (design gate + review loop)
